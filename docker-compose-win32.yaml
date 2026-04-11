@@ -1,0 +1,37 @@
+services:
+  depth:
+    build: .
+    image: depthanything-tool
+    container_name: depthanything-container
+
+    # Windows: no network_mode: host — Docker Desktop uses NAT; use explicit port
+    # mapping if ever needed (not required for this offline batch tool)
+
+    environment:
+      # HuggingFace model cache inside the named volume
+      - HF_HOME=/cache/huggingface
+      # Force CPU — remove if using WSL2 + nvidia-container-toolkit for GPU
+      - CUDA_VISIBLE_DEVICES=
+
+    volumes:
+      # Windows paths: Docker Desktop translates C:\... automatically when using
+      # relative paths from the project root (where this file lives).
+      # Drop input images into the input\ folder, collect results from output\.
+      - .\input:/data/input
+      - .\output:/data/output
+      # Named volume keeps the downloaded model between runs (avoids re-download)
+      - hf_cache:/cache/huggingface
+
+    command: ["--input", "/data/input/photo.jpg", "--output", "/data/output/depth.png", "--model", "small"]
+
+    # ── GPU support (requires WSL2 backend + nvidia-container-toolkit) ──────────
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  hf_cache:

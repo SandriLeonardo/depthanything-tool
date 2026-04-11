@@ -1,0 +1,31 @@
+services:
+  depth:
+    build: .
+    image: depthanything-tool
+    container_name: depthanything-container
+
+    network_mode: host
+
+    volumes:
+      # Mount local input/ and output/ folders into the container
+      - ./input:/data/input
+      - ./output:/data/output
+      # Named volume so the HuggingFace model is cached between runs
+      - hf_cache:/cache/huggingface
+
+    # Default: processes every file in input/ one by one.
+    # Override with: docker compose run depth --input /data/input/myphoto.jpg ...
+    # The CMD in Dockerfile handles a single file; use the shell wrapper for batch.
+    command: ["--input", "/data/input/photo.jpg", "--output", "/data/output/depth.png", "--model", "small"]
+
+    # ── GPU support (uncomment if you have nvidia-container-toolkit installed) ──
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  hf_cache:
